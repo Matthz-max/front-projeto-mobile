@@ -5,7 +5,7 @@ import { fetchCarImage } from '../services/api';
 
 export default function HomeScreen() {
   const [carNameInput, setCarNameInput] = useState('');
-  const [carImage, setCarImage] = useState<string | null>(null);
+  const [carImages, setCarImages] = useState<string[]>([]); // array de imagens
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +17,6 @@ export default function HomeScreen() {
     }
 
     setLoading(true);
-    setCarImage(null);
 
     try {
       const image = await fetchCarImage(carNameInput);
@@ -26,7 +25,9 @@ export default function HomeScreen() {
         return;
       }
 
-      setCarImage(image);
+      // adiciona nova imagem no início da lista
+      setCarImages(prevImages => [image, ...prevImages]);
+      setCarNameInput(''); // limpa o input após busca
     } catch (e) {
       setError('Erro ao buscar imagem do carro. Tente novamente.');
       console.error(e);
@@ -36,7 +37,12 @@ export default function HomeScreen() {
   };
 
   return (
-    <Box flex={1} safeArea bg="primary.600" px={4} pt={6}>
+    <ScrollView
+      flex={1}
+      bg="primary.600"
+      contentContainerStyle={{ padding: 16, paddingTop: 40 }}
+      showsVerticalScrollIndicator={false}
+    >
       <Center mb={6}>
         <Text color="white" fontSize="3xl" fontWeight="bold" letterSpacing="md">
           Driveasy
@@ -46,7 +52,7 @@ export default function HomeScreen() {
         </Text>
       </Center>
 
-      <Box bg="white" p={4} borderRadius="lg" shadow={2} flex={1}>
+      <Box bg="white" p={4} borderRadius="lg" shadow={2}>
         <VStack space={4}>
           <Input
             placeholder="Digite marca e modelo do carro (ex: Toyota Corolla)"
@@ -57,17 +63,9 @@ export default function HomeScreen() {
             borderRadius="md"
             _focus={{ bg: 'gray.200' }}
           />
-          <Button onPress={handleSearch} colorScheme="primary">
+          <Button onPress={handleSearch} colorScheme="primary" isLoading={loading}>
             Buscar
           </Button>
-
-          {loading && (
-            <Center>
-              <Text color="primary.600" fontWeight="bold" mt={2}>
-                Buscando imagem...
-              </Text>
-            </Center>
-          )}
 
           {error && (
             <Center>
@@ -77,27 +75,13 @@ export default function HomeScreen() {
             </Center>
           )}
 
-          {carImage && (
-            <>
-              <Center>
-                <Text
-                  mt={4}
-                  fontSize="2xl"
-                  fontWeight="bold"
-                  color="coolGray.800"
-                  textAlign="center"
-                >
-                  {carNameInput}
-                </Text>
-              </Center>
-
-              <ScrollView>
-                <CarCard carImage={carImage} />
-              </ScrollView>
-            </>
-          )}
+          {/* Renderiza cada CarCard da lista */}
+          {carImages.length > 0 &&
+            carImages.map((img, index) => (
+              <CarCard key={index} carImage={img} />
+            ))}
         </VStack>
       </Box>
-    </Box>
+    </ScrollView>
   );
 }

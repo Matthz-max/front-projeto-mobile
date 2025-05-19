@@ -23,9 +23,9 @@ const CarCard: React.FC<Props> = ({ carImage }) => {
           <Image
             source={{ uri: carImage }}
             alt="Imagem do Carro"
-            height={220}
             width="100%"
             resizeMode="cover"
+            style={{ aspectRatio: 16 / 9 }}
           />
           <LinearGradient
             colors={['transparent', 'rgba(0,0,0,0.7)']}
